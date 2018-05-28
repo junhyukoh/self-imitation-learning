@@ -3,6 +3,7 @@ import tensorflow as tf
 from baselines.a2c.utils import conv, fc, conv_to_fc, batch_to_seq, seq_to_batch, lstm, lnlstm
 from baselines.common.distributions import make_pdtype
 from baselines.common.input import observation_input
+from baselines.a2c.utils import cat_entropy
 
 def nature_cnn(unscaled_images, **conv_kwargs):
     """
@@ -91,7 +92,8 @@ class CnnPolicy(object):
 
     def __init__(self, sess, ob_space, ac_space, nbatch, nsteps, reuse=False, **conv_kwargs): #pylint: disable=W0613
         self.pdtype = make_pdtype(ac_space)
-        X, processed_x = observation_input(ob_space, nbatch)
+        #X, processed_x = observation_input(ob_space, nbatch)
+        X, processed_x = observation_input(ob_space, None)
         with tf.variable_scope("model", reuse=reuse):
             h = nature_cnn(processed_x, **conv_kwargs)
             vf = fc(h, 'v', 1)[:,0]
@@ -100,6 +102,8 @@ class CnnPolicy(object):
         a0 = self.pd.sample()
         neglogp0 = self.pd.neglogp(a0)
         self.initial_state = None
+        
+        self.entropy = cat_entropy(self.pi)
 
         def step(ob, *_args, **_kwargs):
             a, v, neglogp = sess.run([a0, vf, neglogp0], {X:ob})
@@ -108,10 +112,15 @@ class CnnPolicy(object):
         def value(ob, *_args, **_kwargs):
             return sess.run(vf, {X:ob})
 
+        def neg_log_prob(actions):
+            return tf.nn.sparse_softmax_cross_entropy_with_logits(
+                logits=self.pi, labels=actions)
+
         self.X = X
         self.vf = vf
         self.step = step
         self.value = value
+        self.neg_log_prob = neg_log_prob
 
 class MlpPolicy(object):
     def __init__(self, sess, ob_space, ac_space, nbatch, nsteps, reuse=False): #pylint: disable=W0613
