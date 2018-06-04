@@ -9,7 +9,7 @@ from baselines.a2c.policies import MlpPolicy
 def train(env_id, num_timesteps, seed, policy, lrschedule, num_env, sil_update, sil_beta, count_exp_weight):
     if policy == 'mlp':
         policy_fn = MlpPolicy
-    env = VecFrameStack(make_maze_env(env_id, num_env, seed), 4)
+    env = VecFrameStack(make_maze_env(env_id, num_env, seed), 1)
     learn(policy_fn, env, seed, total_timesteps=int(num_timesteps * 1.1), lrschedule=lrschedule,
           sil_update=sil_update, sil_beta=sil_beta, count_exp_weight=count_exp_weight, 
           gamma=0.95, ent_coef=0.03)
