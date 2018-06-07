@@ -97,7 +97,6 @@ class Runner(AbstractEnvRunner):
             mb_actions.append(actions)
             mb_values.append(values)
             mb_dones.append(self.dones)
-            import ipdb; ipdb.set_trace()
             obs, rewards, dones, _ = self.env.step(actions)
             self.states = states
             self.dones = dones

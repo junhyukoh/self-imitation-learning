@@ -183,9 +183,9 @@ class SelfImitation(object):
     def __init__(self, model_ob, model_vf, model_entropy, 
             fn_value, fn_neg_log_prob, ac_space, fn_reward, fn_obs=None,
             n_env=16, batch_size=512, n_update=4, 
-            clip=1, w_value=0.01, w_entropy=0.01, max_episodes=20, 
-            max_steps=int(1e5), update_freq=1000, gamma=0.99,
-            max_nlogp=5, min_batch_size=64, stack=4,
+            clip=1, w_value=0.01, w_entropy=0.01, 
+            max_steps=int(1e5), gamma=0.99,
+            max_nlogp=5, min_batch_size=64, stack=1,
             alpha=0.6, beta=1.0):
 
         self.model_ob = model_ob
@@ -205,22 +205,17 @@ class SelfImitation(object):
         self.w_loss = 1.0
         self.w_value = w_value
         self.w_entropy = w_entropy
-        self.max_episodes = max_episodes
         self.max_steps = max_steps
-        self.update_freq = update_freq
         self.gamma = gamma
         self.max_nlogp = max_nlogp
         self.min_batch_size = min_batch_size
 
         self.stack = stack
-        self.dirty = False
         self.train_count = 0
         self.update_count = 0
         self.total_steps = []
         self.total_rewards = []
         self.running_episodes = [[] for _ in range(n_env)]
-        self.filtered_data = []
-        self._unique_id = 0
 
         if isinstance(ac_space, spaces.Box):
             # Continuous control
@@ -313,9 +308,9 @@ class SelfImitation(object):
             return None, None, None, None, None
 
     def build_loss_op(self):
-        indicator = tf.where(self.R - tf.squeeze(self.model_vf) > 0.0, 
+        mask = tf.where(self.R - tf.squeeze(self.model_vf) > 0.0, 
                 tf.ones_like(self.R), tf.zeros_like(self.R))
-        self.num_valid_samples = tf.reduce_sum(indicator)
+        self.num_valid_samples = tf.reduce_sum(mask)
         self.num_samples = tf.maximum(self.num_valid_samples, self.min_batch_size)
        
         # Policy update
@@ -331,13 +326,13 @@ class SelfImitation(object):
         self.pg_loss = tf.reduce_sum(self.W * self.adv * clipped_nlogp) / self.num_samples
 
         # Entropy regularization
-        entropy = tf.reduce_sum(self.W * self.model_entropy * indicator) / self.num_samples
+        entropy = tf.reduce_sum(self.W * self.model_entropy * mask) / self.num_samples
         self.loss = self.pg_loss - entropy * self.w_entropy
             
         # Value update
         v_target = self.R
         v_estimate = tf.squeeze(self.model_vf)
-        delta = tf.clip_by_value(v_estimate - v_target, -self.clip, 0) * indicator
+        delta = tf.clip_by_value(v_estimate - v_target, -self.clip, 0) * mask
         self.vf_loss = tf.reduce_sum(self.W * v_estimate * tf.stop_gradient(delta)) / self.num_samples
         self.loss += 0.5 * self.w_value * self.vf_loss
         return self.loss

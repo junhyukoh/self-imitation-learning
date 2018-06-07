@@ -1,3 +1,0 @@
-<maze csv="maze_config/map1.csv" time=50 />
-<reward treasure=4 door=2 key=1 apple=1 />
-<meta remaining_time=0 />

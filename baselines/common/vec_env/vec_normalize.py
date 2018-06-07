@@ -24,6 +24,8 @@ class VecNormalize(VecEnvWrapper):
         where 'news' is a boolean vector indicating whether each element is new.
         """
         obs, rews, news, infos = self.venv.step_wait()
+        self.raw_reward = rews
+        self.raw_obs = obs
         self.ret = self.ret * self.gamma + rews
         obs = self._obfilt(obs)
         if self.ret_rms:
@@ -38,10 +40,21 @@ class VecNormalize(VecEnvWrapper):
             return obs
         else:
             return obs
+    
+    def process_reward(self, rews):
+        if self.ret_rms:
+            rews = np.clip(rews / np.sqrt(self.ret_rms.var + self.epsilon), -self.cliprew, self.cliprew)
+        return rews
+
+    def process_obs(self, obs):
+        if self.ob_rms: 
+            obs = np.clip((obs - self.ob_rms.mean) / np.sqrt(self.ob_rms.var + self.epsilon), -self.clipob, self.clipob)
+        return obs 
 
     def reset(self):
         """
         Reset all environments
         """
         obs = self.venv.reset()
+        self.raw_obs = obs
         return self._obfilt(obs)

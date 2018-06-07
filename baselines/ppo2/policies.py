@@ -139,8 +139,13 @@ class MlpPolicy(object):
 
         def value(ob, *_args, **_kwargs):
             return sess.run(vf, {X:ob})
+        
+        def neg_log_prob(actions):
+            return self.pd.neglogp(actions)
 
         self.X = X
         self.vf = vf
         self.step = step
         self.value = value
+        self.neg_log_prob = neg_log_prob
+        self.entropy = self.pd.entropy()
