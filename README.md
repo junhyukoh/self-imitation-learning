@@ -1,5 +1,5 @@
 # Introduction
-This repository is an implementation of **[ICML 2018 Self-Imitation Learning](https://arxiv.org/abs/1707.03497)** in Tensorflow.
+This repository is an implementation of [ICML 2018 Self-Imitation Learning](https://arxiv.org/abs/1707.03497) in Tensorflow.
 ```
 @inproceedings{Oh2018SIL,
   title={Self-Imitation Learning},
@@ -8,7 +8,7 @@ This repository is an implementation of **[ICML 2018 Self-Imitation Learning](ht
   year={2018}
 }
 ```
-Our code is based on [OpenAI's Baselines](https://github.com/openai/baselines).
+Our code is based on [OpenAI Baselines](https://github.com/openai/baselines).
 
 # Training
 The following command runs `A2C+SIL` on Atari games:
