@@ -1,5 +1,5 @@
 # Introduction
-This repository is an implementation of [ICML 2018 Self-Imitation Learning](https://arxiv.org/abs/1707.03497) in Tensorflow.
+This repository is an implementation of [ICML 2018 Self-Imitation Learning](http://arxiv.org/abs/1806.05635) in Tensorflow.
 ```
 @inproceedings{Oh2018SIL,
   title={Self-Imitation Learning},
